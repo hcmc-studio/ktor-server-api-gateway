@@ -4,11 +4,12 @@ val kotlinx_coroutines_version: String by project
 val kotlinx_serialization_version: String by project
 val hcmc_extension_version: String by project
 val ktor_version: String by project
+val lettuce_version: String by project
+val commons_pool2_version: String by project
 
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
-    id("io.ktor.plugin")
     id("maven-publish")
 }
 
@@ -61,4 +62,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-resources-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
+
+    implementation("io.lettuce:lettuce-core:$lettuce_version")
+    implementation("org.apache.commons:commons-pool2:$commons_pool2_version")
 }

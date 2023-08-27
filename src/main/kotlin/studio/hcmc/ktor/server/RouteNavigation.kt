@@ -1,13 +1,9 @@
 package studio.hcmc.ktor.server
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import studio.hcmc.ktor.server.data.vo.APIGatewayEndpointVO
@@ -22,6 +18,7 @@ internal class RouteNavigation(
         private var dispatcherId = AtomicInteger(0)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("$dispatcherNamePrefix${dispatcherId.getAndIncrement()}")
     private val paths = HashMap<String /* RouteSelector */, Pair<RouteNodes, Route>>()
 
@@ -93,34 +90,15 @@ internal class RouteNavigation(
         nodes: RouteNodes,
         client: EndpointClient
     ): Route {
-        val method = HttpMethod(endpoint.method)
-        return route(endpoint.path, method) {
-            handle {
-                nodes
-                    .selectNode { client.getOrPut(endpoint) }
-                    .request(HttpRequestBuilder().apply { fromApplicationCall(call) })
-                    .let { call.respond(it) }
-            }
+        return when (val method = HttpMethod(endpoint.method)) {
+            HttpMethod.Get -> get(endpoint, nodes, client)
+            HttpMethod.Post -> post(endpoint, nodes, client)
+            HttpMethod.Put -> put(endpoint, nodes, client)
+            HttpMethod.Patch -> patch(endpoint, nodes, client)
+            HttpMethod.Delete -> delete(endpoint, nodes, client)
+            HttpMethod.Head -> head(endpoint, nodes, client)
+            HttpMethod.Options -> options(endpoint, nodes, client)
+            else -> throw AssertionError("Unknown method: $method")
         }
-    }
-
-    private suspend fun HttpRequestBuilder.fromApplicationCall(call: ApplicationCall) {
-        method = call.request.httpMethod
-        header(APIGatewayConfig.config.headerNames.remoteAddress, call.request.origin.remoteAddress)
-        header(APIGatewayConfig.config.headerNames.remotePort, call.request.origin.remotePort.toString())
-        header(APIGatewayConfig.config.headerNames.remoteHost, call.request.origin.remoteHost)
-        headers.appendMissing(call.request.headers)
-        parameters { appendAll(call.request.queryParameters) }
-        setBody(call.receive(), call.receiveType)
-    }
-
-    private suspend fun ApplicationCall.respond(httpResponse: HttpResponse) {
-        httpResponse.headers.forEach { name, values ->
-            for (value in values) {
-                // TODO don't know how values merged
-                response.headers.append(name, value)
-            }
-        }
-        respondText(httpResponse.bodyAsText(), httpResponse.contentType(), httpResponse.status)
     }
 }

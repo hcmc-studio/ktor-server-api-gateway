@@ -33,7 +33,8 @@ internal fun Routing.endpointRouting(
             host = dto.host,
             port = dto.port,
             method = dto.method,
-            path = dto.path
+            path = dto.path,
+            cachePolicy = dto.cachePolicy
         )
 
         client.getOrPut(endpoint)
@@ -42,6 +43,7 @@ internal fun Routing.endpointRouting(
     }
 
     get<List> {
+        // TODO implementation
         call.respondError(HttpStatusCode.InternalServerError, NotImplementedError())
     }
 

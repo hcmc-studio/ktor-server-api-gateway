@@ -2,6 +2,8 @@ package studio.hcmc.ktor.server
 
 import Engine
 import io.ktor.client.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import studio.hcmc.ktor.plugin.defaultJson
@@ -22,6 +24,7 @@ internal class EndpointClient {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("$dispatcherNamePrefix${dispatcherId.getAndIncrement()}")
     private val clients = HashMap<String /* (host:port) */, HttpClient>()
 

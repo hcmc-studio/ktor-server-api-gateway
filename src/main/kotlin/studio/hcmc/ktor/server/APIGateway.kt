@@ -5,6 +5,8 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.routing.*
+import io.lettuce.core.api.StatefulRedisConnection
+import org.apache.commons.pool2.impl.GenericObjectPool
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import studio.hcmc.ktor.routing.respondError
@@ -24,7 +26,8 @@ internal class APIGatewayConfig(
     val headerNames: APIGatewayConfigBuilder.HeaderNames,
     val coroutineDispatcherPrefixes: APIGatewayConfigBuilder.CoroutineDispatcherPrefixes,
     val routeNodeSelector: suspend (nodes: List<RouteNode>) -> Int,
-    val endpointHttpClientConfiguration: EndpointHttpClientConfiguration
+    val endpointHttpClientConfiguration: EndpointHttpClientConfiguration,
+    val cacheConnection: (() -> StatefulRedisConnection<String, *>)? = null
 ) {
     companion object;
 }
@@ -65,6 +68,8 @@ class APIGatewayConfigBuilder {
      */
     var endpointHttpClientConfiguration: EndpointHttpClientConfiguration = EndpointClient.defaultHttpClientConfiguration
 
+    var cacheConnection: (() -> GenericObjectPool<StatefulRedisConnection<String, *>>)? = null
+
     class Loggers {
         var endpointClient: Logger = LoggerFactory.getLogger("EndpointClient")
         var routeNavigation: Logger = LoggerFactory.getLogger("RouteNavigation")
@@ -85,6 +90,10 @@ class APIGatewayConfigBuilder {
     }
 }
 
+/**
+ * Requirement:
+ * - ktor-plugin-content-negotiation
+ */
 val APIGateway = createApplicationPlugin("APIGateway", ::APIGatewayConfigBuilder) {
     _config = APIGatewayConfig(
         pluginConfig.host,

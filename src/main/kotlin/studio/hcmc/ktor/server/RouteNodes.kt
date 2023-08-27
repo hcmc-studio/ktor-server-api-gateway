@@ -18,8 +18,9 @@ internal class RouteNodes(endpoint: APIGatewayEndpointVO) {
         private val nodeSelector get() = APIGatewayConfig.config.routeNodeSelector
     }
 
-    private val nodes = ArrayList<RouteNodeImpl>()
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     private val dispatcher = newSingleThreadContext("$dispatcherPrefix${dispatcherId.getAndIncrement()}")
+    private val nodes = ArrayList<RouteNodeImpl>()
 
     init {
         nodes.add(RouteNodeImpl(endpoint))
