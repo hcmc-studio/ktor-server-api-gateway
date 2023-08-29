@@ -4,7 +4,7 @@ import io.ktor.client.statement.*
 import io.ktor.server.application.ApplicationCall
 import kotlinx.serialization.Serializable
 import studio.hcmc.kotlin.protocol.io.Response
-import studio.hcmc.ktor.server.util.JSerializer
+import studio.hcmc.kotlin.serialization.JSerializer
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 data class APIGatewayEndpointCachePolicy(
     /**
      * 캐시에 저장하는 데이터의 클래스 이름
-     * @see KClass.qualifiedName
+     * @see KClass.simpleName
      */
     val valueClassName: String,
     /**
@@ -45,22 +45,4 @@ data class APIGatewayEndpointCachePolicy(
 
 internal fun APIGatewayEndpointCachePolicy.kClass(): KClass<Any> {
     return Reflection.createKotlinClass(Class.forName(valueClassName))
-}
-
-// TODO kotlin-format-extension
-internal fun APIGatewayEndpointCachePolicy.keyPrefix(): String {
-    val className = kClass().simpleName ?: return ""
-    val builder = StringBuilder()
-    for ((index, c) in className.removeSuffix("Id").withIndex()) {
-        if (c.isUpperCase()) {
-            if (index > 0) {
-                builder.append(':')
-            }
-            builder.append(c.lowercaseChar())
-        } else {
-            builder.append(c)
-        }
-    }
-
-    return builder.append(':').toString()
 }

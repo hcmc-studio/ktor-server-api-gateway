@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializerOrNull
+import studio.hcmc.kotlin.format.CacheKeyPrefix
 import studio.hcmc.kotlin.protocol.io.Response
 import studio.hcmc.ktor.plugin.defaultJson
 import studio.hcmc.ktor.routing.respondArray
@@ -160,7 +161,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.getFromCache(
     val connectionSupplier = APIGatewayConfig.config.cacheConnection ?: return null
     val serializer = cachePolicy.kClass().serializerOrNull() ?: return null
     val parameter = call.parameters[cachePolicy.parameterName] ?: return null
-    val key = "${cachePolicy.keyPrefix()}$parameter"
+    val key = "${CacheKeyPrefix.convert(cachePolicy.valueClassName)}$parameter"
     val value = connectionSupplier().use { it.coroutines().get(key) } ?: return null
 
     return application.defaultJson.encodeToJsonElement(serializer, value)
@@ -175,7 +176,7 @@ private suspend fun updateCache(
     val cachePolicy = endpoint.cachePolicy ?: return
     val connectionSupplier = APIGatewayConfig.config.cacheConnection ?: return
     val value = cachePolicy.resultSelector(httpResponse)
-    val key = "${cachePolicy.keyPrefix()}${cachePolicy.idSelector(value)}"
+    val key = "${CacheKeyPrefix.convert(cachePolicy.valueClassName)}${cachePolicy.idSelector(value)}"
     connectionSupplier().use {
         val setex = it.coroutines()::setex as KSuspendFunction3<String, Long, Any, String?>
         setex(key, cachePolicy.expireSeconds, value)
@@ -189,7 +190,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.deleteCache(
     val cachePolicy = endpoint.cachePolicy ?: return
     val connectionSupplier = APIGatewayConfig.config.cacheConnection ?: return
     val parameter = call.parameters[cachePolicy.parameterName] ?: return
-    val key = "${cachePolicy.keyPrefix()}$parameter"
+    val key = "${CacheKeyPrefix.convert(cachePolicy.valueClassName)}$parameter"
     connectionSupplier().use { it.coroutines().del(key) }
 }
 

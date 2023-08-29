@@ -49,7 +49,9 @@ publishing {
 
 dependencies {
     implementation("com.github.hcmc-studio:kotlin-coroutines-extension:$hcmc_extension_version")
+    implementation("com.github.hcmc-studio:kotlin-format-extension:$hcmc_extension_version")
     implementation("com.github.hcmc-studio:kotlin-protocol-extension:$hcmc_extension_version")
+    implementation("com.github.hcmc-studio:kotlin-serialization-extension:$hcmc_extension_version")
     implementation("com.github.hcmc-studio:ktor-launcher-extension:$hcmc_extension_version")
     implementation("com.github.hcmc-studio:ktor-plugin-content-negotiation:$hcmc_extension_version")
     implementation("com.github.hcmc-studio:ktor-routing-extension:$hcmc_extension_version")
