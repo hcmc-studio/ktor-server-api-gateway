@@ -143,8 +143,8 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.preFetch(endpoint: AP
     if (cachePolicy != null) {
         val value = getFromCache(cachePolicy) ?: return false
         when (cachePolicy.responseType) {
-            Response.Type.OBJECT -> call.respondObject(HttpStatusCode.OK, value.jsonObject)
-            Response.Type.ARRAY -> call.respondArray(HttpStatusCode.OK, value.jsonArray)
+            Response.Type.Object -> call.respondObject(HttpStatusCode.OK, value.jsonObject)
+            Response.Type.Array -> call.respondArray(HttpStatusCode.OK, value.jsonArray)
             else -> call.respondError(HttpStatusCode.BadRequest, APIGatewayEndpointErrorDTO.InvalidCacheResponseType)
         }
 
