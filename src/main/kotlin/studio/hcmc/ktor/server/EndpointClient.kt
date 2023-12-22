@@ -2,12 +2,16 @@ package studio.hcmc.ktor.server
 
 import Engine
 import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import studio.hcmc.ktor.plugin.defaultJson
-import studio.hcmc.ktor.protocol.HttpClient
 import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -20,7 +24,22 @@ internal class EndpointClient {
         private val RouteDestination.url: URL get() = URL(key)
         private val httpClientConfiguration: EndpointHttpClientConfiguration get() = APIGatewayConfig.config.endpointHttpClientConfiguration
         internal val defaultHttpClientConfiguration: EndpointHttpClientConfiguration = { destination ->
-            HttpClient(destination.url, Engine.application::defaultJson)
+            HttpClient(CIO) {
+                defaultRequest {
+                    url {
+                        host = destination.host
+                        port = destination.port
+                    }
+                }
+
+                install(ContentNegotiation) {
+                    json(Engine.application.defaultJson)
+                }
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.ALL
+                }
+            }
         }
     }
 
